@@ -1,0 +1,13 @@
+services:
+  - type: worker
+    name: antigravity-bot
+    runtime: node
+    buildCommand: npm install
+    startCommand: node cloud_bot.js
+    envVars:
+      - key: TELEGRAM_TOKEN
+        sync: false
+      - key: GEMINI_KEY
+        sync: false
+      - key: GROQ_KEY
+        sync: false

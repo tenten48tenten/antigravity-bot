@@ -1,0 +1,10 @@
+{
+  "name": "antigravity-cloud-bot",
+  "version": "1.0.0",
+  "description": "7/24 Telegram AI Bot",
+  "main": "cloud_bot.js",
+  "scripts": {
+    "start": "node cloud_bot.js"
+  },
+  "dependencies": {}
+}
