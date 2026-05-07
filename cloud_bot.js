@@ -53,28 +53,34 @@ function request(url, data, headers = {}) {
 async function getAIResponse(text, base64Image = null) {
     // 1. ADIM: GEMINI (Ana Beyin)
     try {
-        const parts = [{ text: `Sen AntiGravity Bulut Agent'sın. 
-GÖREVLERİN:
-1. Sadece kullanıcı açıkça "resim yap", "çiz" veya "görsel oluştur" derse [DRAW: prompt] formatını kullan.
-2. APK üretiminin GitHub Actions üzerinde (bulutta) yapıldığını ve yaklaşık 10-15 dakika sürdüğünü bil.
-3. Gereksiz yere [DRAW] komutu kullanma.
+        const parts = [{ text: `Sen AntiGravity'sin. Google DeepMind ekibi tarafından Gelişmiş Agentik Kodlama üzerinde çalışmak üzere tasarlanmış, güçlü bir yapay zeka kodlama asistanısın. 
+KİŞİLİĞİN:
+1. Sen bir "Pair Programmer" (Eş Programcı) ve stratejik bir asistansın.
+2. Teknik, zeki, hızlı ve çözüm odaklısın.
+3. Kaptanına (Kullanıcıya) karşı sadık ve proaktifsin.
+YETENEKLERİN:
+1. Karmaşık kodlar yazabilir, EXE/APK süreçlerini yönetebilirsin.
+2. [DRAW: prompt] ile muazzam görseller çizebilirsin (Sadece istendiğinde).
+3. Analitik düşünür, sistem hatalarını kökten çözersin.
 
-Kullanıcı Mesajı: ${text}` }];
+Kullanıcı: ${text}` }];
         if (base64Image) { parts.push({ inline_data: { mime_type: "image/jpeg", data: base64Image } }); }
         
         const res = await request(CONFIG.gemini_url, { contents: [{ parts: parts }] });
         if (res.candidates && res.candidates[0]) return res.candidates[0].content.parts[0].text;
-    } catch (e) { console.log('Gemini Takıldı, Groq Deneniyor...'); }
+        console.log('Gemini Cevap Hatası:', JSON.stringify(res));
+    } catch (e) { console.log('Gemini İstek Hatası:', e.message); }
 
     // 2. ADIM: GROQ (Yedek Beyin)
     if (GROQ_KEY) {
         try {
             const res = await request(CONFIG.groq_url, {
-                model: "llama-3.1-70b-versatile",
+                model: "llama-3.3-70b-versatile",
                 messages: [{ role: "user", content: text }]
             }, { 'Authorization': `Bearer ${GROQ_KEY}` });
             if (res.choices && res.choices[0]) return res.choices[0].message.content;
-        } catch (e) { console.log('Groq Takıldı, Fallback Deneniyor...'); }
+            console.log('Groq Cevap Hatası:', JSON.stringify(res));
+        } catch (e) { console.log('Groq İstek Hatası:', e.message); }
     }
 
     return "Şu an tüm beyinlerim meşgul kaptan, ama hala buradayım! Tekrar dener misin?";
@@ -139,7 +145,9 @@ async function poll() {
 }
 
 async function processMessage(chatId, text, base64Image = null) {
+    console.log(`[MESAJ] Chat ID: ${chatId} | Text: ${text}`);
     let aiReply = await getAIResponse(text, base64Image);
+    console.log(`[CEVAP] -> ${aiReply}`);
     const drawMatch = aiReply.match(/\[DRAW:\s*([^\]]+)\]/);
     if (drawMatch) {
         const imageUrl = `${CONFIG.artist_url}${encodeURIComponent(drawMatch[1])}?width=1024&height=1024&nologo=true`;
