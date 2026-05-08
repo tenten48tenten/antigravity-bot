@@ -13,3 +13,5 @@ services:
         sync: false
       - key: OPENROUTER_KEY
         sync: false
+      - key: MY_URL
+        sync: false

@@ -11,8 +11,19 @@ const CONFIG = {
     gemini_url: `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_KEY}`,
     groq_url: 'https://api.groq.com/openai/v1/chat/completions',
     openrouter_url: 'https://openrouter.ai/api/v1/chat/completions',
-    artist_url: 'https://image.pollinations.ai/prompt/'
+    artist_url: 'https://image.pollinations.ai/prompt/',
+    my_url: process.env.MY_URL // Render URL'niz (Örn: https://bot-adiniz.onrender.com)
 };
+
+// 7/24 UYANIK TUTMA (SELF-PING)
+if (CONFIG.my_url) {
+    setInterval(() => {
+        https.get(`${CONFIG.my_url}/ping`, (res) => {
+            console.log(`[SELF-PING] Durum: ${res.statusCode}`);
+        }).on('error', (e) => console.log(`[SELF-PING] Hata: ${e.message}`));
+    }, 10 * 60 * 1000); // Her 10 dakikada bir ping
+    console.log('--- Self-Ping Mekanizması Devrede ---');
+}
 
 // Aktif Modeller ve Durumlar
 let activeModels = {
