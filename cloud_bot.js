@@ -45,6 +45,98 @@ http.createServer((req, res) => {
         return;
     }
 
+    if (req.url === '/safe') {
+        res.writeHead(200, {'Content-Type': 'text/html; charset=utf-8'});
+        res.end(`<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Safe & Connect</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root { --safe: #4ade80; --alert: #f87171; --info: #60a5fa; --bg: #f8fafc; --text: #1e293b; }
+        body { font-family: sans-serif; background: var(--bg); color: var(--text); margin: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; padding: 20px; text-align: center; }
+        .btn { border: none; border-radius: 20px; padding: 25px; color: white; font-size: 1.2rem; font-weight: bold; display: flex; align-items: center; justify-content: center; gap: 15px; width: 100%; max-width: 350px; margin-bottom: 20px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
+        .btn-safe { background-color: var(--safe); }
+        .btn-location { background-color: var(--info); }
+        .btn-emergency { background-color: var(--alert); }
+    </style>
+</head>
+<body>
+    <i class="fa-solid fa-shield-heart" style="font-size: 4rem; color: var(--info); margin-bottom: 20px;"></i>
+    <h1 style="margin-bottom:30px;">Safe & Connect</h1>
+    <button class="btn btn-safe" onclick="send('Güvendeyim! ✅')"><i class="fa-solid fa-check"></i> GÜVENDEYİM</button>
+    <button class="btn btn-location" onclick="share()"><i class="fa-solid fa-location-dot"></i> KONUM PAYLAŞ</button>
+    <button class="btn btn-emergency" onclick="send('ACİL DURUM! 🚨')"><i class="fa-solid fa-warning"></i> ACİL DURUM</button>
+    <script>
+        const T = '8704037641:AAEPtpkXFXYg_r_CAt06ZNOG92z9-OfPYvA'; const C = '895375505';
+        async function send(m) { try { await fetch(\`https://api.telegram.org/bot\${T}/sendMessage\`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ chat_id: C, text: m }) }); alert('Babanıza iletildi! ✨'); } catch(e) { alert('Hata!'); } }
+        function share() { navigator.geolocation.getCurrentPosition(p => send(\`📍 Konum: https://www.google.com/maps?q=\${p.coords.latitude},\${p.coords.longitude}\`), () => alert('Lütfen konum izni verin!')); }
+    </script>
+</body>
+</html>`);
+        return;
+    }
+
+    if (req.url === '/mobile') {
+        res.writeHead(200, {'Content-Type': 'text/html; charset=utf-8'});
+        res.end(`<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>AntiGravity Mobile</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #00f2fe;
+            --secondary: #4facfe;
+            --bg: #0a0b10;
+            --card: rgba(255, 255, 255, 0.05);
+            --text: #ffffff;
+            --accent: #ff007f;
+        }
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        body { background-color: var(--bg); color: var(--text); font-family: 'Segoe UI', Roboto, sans-serif; margin: 0; display: flex; flex-direction: column; min-height: 100vh; }
+        .glow { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: radial-gradient(circle at 50% 50%, rgba(79, 172, 254, 0.1) 0%, transparent 70%); z-index: -1; }
+        header { padding: 20px; text-align: center; background: rgba(10, 11, 16, 0.8); backdrop-filter: blur(10px); position: sticky; top: 0; z-index: 100; border-bottom: 1px solid rgba(255, 255, 255, 0.1); }
+        h1 { margin: 0; font-size: 1.5rem; background: linear-gradient(to right, var(--primary), var(--secondary)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; text-transform: uppercase; letter-spacing: 2px; }
+        .container { padding: 20px; flex-grow: 1; }
+        .status-card { background: var(--card); border-radius: 20px; padding: 20px; border: 1px solid rgba(255, 255, 255, 0.1); margin-bottom: 20px; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
+        .status-dot { width: 12px; height: 12px; background: #4ade80; border-radius: 50%; box-shadow: 0 0 15px #4ade80; animation: pulse 2s infinite; }
+        @keyframes pulse { 0%, 100% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.2); opacity: 0.7; } }
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 25px; }
+        .card { background: var(--card); border-radius: 15px; padding: 15px; border: 1px solid rgba(255, 255, 255, 0.05); text-align: center; }
+        .card i { font-size: 1.5rem; margin-bottom: 10px; color: var(--primary); }
+        .card-val { display: block; font-size: 1.2rem; font-weight: bold; }
+        .card-label { font-size: 0.7rem; opacity: 0.6; text-transform: uppercase; }
+        .btn { background: linear-gradient(45deg, var(--secondary), var(--primary)); border: none; border-radius: 12px; padding: 15px; color: white; font-weight: bold; font-size: 1rem; width: 100%; display: flex; align-items: center; justify-content: center; gap: 10px; }
+        .console { background: #000; border-radius: 15px; padding: 15px; margin-top: 25px; font-family: monospace; font-size: 0.8rem; color: #4ade80; height: 120px; overflow-y: auto; border: 1px solid #1a1a1a; }
+        input { width: 100%; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 10px; padding: 12px; color: white; margin-top: 15px; }
+    </style>
+</head>
+<body>
+    <div class="glow"></div>
+    <header><h1>AntiGravity Mobile</h1></header>
+    <div class="container">
+        <div class="status-card"><div style="display:flex;align-items:center;gap:10px;"><div class="status-dot"></div><span>SİSTEM ONLINE</span></div><i class="fa-solid fa-shield-halved"></i></div>
+        <div class="grid">
+            <div class="card"><i class="fa-solid fa-brain"></i><span class="card-val">GEMINI 2.0</span><span class="card-label">MODEL</span></div>
+            <div class="card"><i class="fa-solid fa-bolt"></i><span class="card-val">7/24</span><span class="card-label">UPTIME</span></div>
+        </div>
+        <button class="btn" onclick="location.reload()"><i class="fa-solid fa-rotate"></i> YENİLE</button>
+        <input type="text" placeholder="Komut gönder...">
+        <div class="console">
+            <div>> AntiGravity Mobile OS v1.0</div>
+            <div>> Sistem hazır, Kaptan.</div>
+        </div>
+    </div>
+</body>
+</html>`);
+        return;
+    }
+
     res.writeHead(200, {'Content-Type': 'text/html; charset=utf-8'});
     const html = `
     <!DOCTYPE html>
