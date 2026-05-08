@@ -4,29 +4,175 @@ const http = require('http');
 // --- YAPILANDIRMA (Hibrit Altyapı) ---
 const TELEGRAM_TOKEN = process.env.TELEGRAM_TOKEN;
 const GEMINI_KEY = process.env.GEMINI_KEY;
-const GROQ_KEY = process.env.GROQ_KEY; // Yedek anahtar
+const GROQ_KEY = process.env.GROQ_KEY;
+const OPENROUTER_KEY = process.env.OPENROUTER_KEY; // Render Environment Variables kısmına eklenmeli
 
 const CONFIG = {
     gemini_url: `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_KEY}`,
     groq_url: 'https://api.groq.com/openai/v1/chat/completions',
+    openrouter_url: 'https://openrouter.ai/api/v1/chat/completions',
     artist_url: 'https://image.pollinations.ai/prompt/'
 };
 
+// Aktif Modeller ve Durumlar
+let activeModels = {
+    gemini: !!GEMINI_KEY,
+    groq: !!GROQ_KEY,
+    openrouter: !!OPENROUTER_KEY
+};
+
+let userModels = {}; // Chat ID -> Model ID mapping
+const DEFAULT_MODEL = 'google/gemini-2.0-flash-exp:free'; // OpenRouter default if requested
+
 console.log('--- AntiGravity Ölümsüz Bot (Hybrid 7/24 Edition) Başlatılıyor ---');
 
-let lastUpdateId = 0;
-
-// 7/24 AKTİFLİK: Render'ın uyumasını engelleyen HTTP sunucusu
+// 7/24 PREMIUM DASHBOARD
 http.createServer((req, res) => {
     if (req.url === '/ping') {
         res.writeHead(200);
-        res.end('PONG! Bot Aktif.');
-    } else {
-        res.writeHead(200, {'Content-Type': 'text/plain'});
-        res.end('AntiGravity Bot is running 24/7!\n');
+        res.end('PONG');
+        return;
     }
+
+    res.writeHead(200, {'Content-Type': 'text/html; charset=utf-8'});
+    const html = `
+    <!DOCTYPE html>
+    <html lang="tr">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>AntiGravity | Control Center</title>
+        <style>
+            :root {
+                --primary: #00f2fe;
+                --secondary: #4facfe;
+                --bg: #0a0b10;
+                --card: rgba(255, 255, 255, 0.05);
+                --text: #ffffff;
+            }
+            body {
+                background: var(--bg);
+                color: var(--text);
+                font-family: 'Inter', system-ui, -apple-system, sans-serif;
+                margin: 0;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                min-height: 100vh;
+                overflow: hidden;
+            }
+            .container {
+                position: relative;
+                z-index: 1;
+                text-align: center;
+                padding: 2rem;
+                background: var(--card);
+                backdrop-filter: blur(20px);
+                border-radius: 24px;
+                border: 1px solid rgba(255, 255, 255, 0.1);
+                box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+                width: 90%;
+                max-width: 500px;
+            }
+            .glow {
+                position: absolute;
+                width: 300px;
+                height: 300px;
+                background: var(--primary);
+                filter: blur(150px);
+                opacity: 0.2;
+                border-radius: 50%;
+                z-index: 0;
+                animation: pulse 10s infinite;
+            }
+            @keyframes pulse {
+                0%, 100% { transform: scale(1); opacity: 0.1; }
+                50% { transform: scale(1.5); opacity: 0.3; }
+            }
+            h1 {
+                font-size: 2.5rem;
+                margin-bottom: 0.5rem;
+                background: linear-gradient(to right, var(--primary), var(--secondary));
+                -webkit-background-clip: text;
+                -webkit-text-fill-color: transparent;
+                letter-spacing: -1px;
+            }
+            .status {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                gap: 8px;
+                margin-bottom: 2rem;
+                font-size: 0.9rem;
+                color: #4ade80;
+            }
+            .dot {
+                width: 10px;
+                height: 10px;
+                background: #4ade80;
+                border-radius: 50%;
+                box-shadow: 0 0 10px #4ade80;
+            }
+            .stats {
+                display: grid;
+                grid-template-columns: repeat(3, 1fr);
+                gap: 1rem;
+                margin-top: 1rem;
+            }
+            .stat-card {
+                padding: 1rem;
+                background: rgba(255, 255, 255, 0.03);
+                border-radius: 12px;
+                border: 1px solid rgba(255, 255, 255, 0.05);
+            }
+            .stat-val {
+                display: block;
+                font-weight: bold;
+                color: var(--primary);
+            }
+            .stat-label {
+                font-size: 0.7rem;
+                opacity: 0.6;
+                text-transform: uppercase;
+            }
+            .footer {
+                margin-top: 2rem;
+                font-size: 0.8rem;
+                opacity: 0.4;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="glow"></div>
+        <div class="container">
+            <h1>AntiGravity</h1>
+            <div class="status">
+                <div class="dot"></div>
+                SİSTEM AKTİF (7/24)
+            </div>
+            <div class="stats">
+                <div class="stat-card">
+                    <span class="stat-val">${activeModels.gemini ? 'ON' : 'OFF'}</span>
+                    <span class="stat-label">Gemini</span>
+                </div>
+                <div class="stat-card">
+                    <span class="stat-val">${activeModels.openrouter ? 'ON' : 'OFF'}</span>
+                    <span class="stat-label">OpenRouter</span>
+                </div>
+                <div class="stat-card">
+                    <span class="stat-val">${activeModels.groq ? 'ON' : 'OFF'}</span>
+                    <span class="stat-label">Groq</span>
+                </div>
+            </div>
+            <p style="margin-top: 2rem; opacity: 0.8;">AntiGravity Bot şu an Telegram üzerinden komutlarınızı bekliyor.</p>
+            <div class="footer">Developed by AntiGravity 🛸</div>
+        </div>
+    </body>
+    </html>`;
+    res.end(html);
 }).listen(process.env.PORT || 3000, () => {
-    console.log('--- 7/24 Web Sunucusu Aktif ---');
+    console.log('--- 7/24 Premium Web Dashboard Aktif ---');
 });
 
 // HTTP/HTTPS POST Yardımcısı
@@ -49,45 +195,49 @@ function request(url, data, headers = {}) {
     });
 }
 
-// HİBRİT AI YANIT SİSTEMİ (Gemini -> Groq -> Fallback)
-async function getAIResponse(text, base64Image = null) {
-    // 1. ADIM: GEMINI (Ana Beyin)
-    try {
-        const parts = [{ text: `Sen AntiGravity'sin. Google DeepMind ekibi tarafından tasarlanmış, güçlü bir Agentik Yapay Zeka Asistanısın. 
-KİŞİLİĞİN:
-1. Sen bir "Pair Programmer" (Eş Programcı) ve stratejik bir asistansın.
-2. Teknik, zeki, hızlı ve çözüm odaklısın.
-3. Kaptanına (Kullanıcıya) karşı sadık ve proaktifsin.
-YETENEKLERİN:
-1. SİSTEM AJANI: [EXEC: komut] ile sistemde aksiyon alabilirsin.
-2. MEDYA/YAZILIM: EXE/APK süreçlerini ve medya düzenlemelerini yönetebilirsin.
-3. SANATÇI: [DRAW: prompt] ile görsel çizebilirsin (Sadece istendiğinde).
-
-Kullanıcı: ${text}` }];
-        if (base64Image) { parts.push({ inline_data: { mime_type: "image/jpeg", data: base64Image } }); }
-        
-        const res = await request(CONFIG.gemini_url, { contents: [{ parts: parts }] });
-        if (res.candidates && res.candidates[0]) return res.candidates[0].content.parts[0].text;
-        console.log('Gemini Cevap Hatası:', JSON.stringify(res));
-    } catch (e) { console.log('Gemini İstek Hatası:', e.message); }
-
-    // 2. ADIM: GROQ (Yedek Beyin)
-    if (GROQ_KEY) {
+// HİBRİT AI YANIT SİSTEMİ
+async function getAIResponse(chatId, text, base64Image = null) {
+    const selectedModel = userModels[chatId];
+    
+    // Eğer kullanıcı özel bir model seçmişse (OpenRouter üzerinden)
+    if (selectedModel && OPENROUTER_KEY) {
         try {
-            const res = await request(CONFIG.groq_url, {
-                model: "llama-3.3-70b-versatile",
+            const res = await request(CONFIG.openrouter_url, {
+                model: selectedModel,
                 messages: [{ role: "user", content: text }]
-            }, { 'Authorization': `Bearer ${GROQ_KEY}` });
+            }, { 'Authorization': `Bearer ${OPENROUTER_KEY}` });
             if (res.choices && res.choices[0]) return res.choices[0].message.content;
-            console.log('Groq Cevap Hatası:', JSON.stringify(res));
-        } catch (e) { console.log('Groq İstek Hatası:', e.message); }
+        } catch (e) { console.log('OpenRouter Hatası:', e.message); }
     }
 
-    return "Şu an tüm beyinlerim meşgul kaptan, ama hala buradayım! Tekrar dener misin?";
+    // 1. ADIM: GEMINI (Ana Beyin)
+    if (GEMINI_KEY) {
+        try {
+            const parts = [{ text: `Sen AntiGravity'sin. Google DeepMind ekibi tarafından tasarlanmış, güçlü bir Agentik Yapay Zeka Asistanısın. 
+KİŞİLİĞİN: Stratejik, teknik ve çözüm odaklısın.
+Kullanıcı: ${text}` }];
+            if (base64Image) { parts.push({ inline_data: { mime_type: "image/jpeg", data: base64Image } }); }
+            const res = await request(CONFIG.gemini_url, { contents: [{ parts: parts }] });
+            if (res.candidates && res.candidates[0]) return res.candidates[0].content.parts[0].text;
+        } catch (e) {}
+    }
+
+    // 2. ADIM: OPENROUTER FALLBACK (Free Modeller)
+    if (OPENROUTER_KEY) {
+        try {
+            const res = await request(CONFIG.openrouter_url, {
+                model: "google/gemini-2.0-flash-exp:free",
+                messages: [{ role: "user", content: text }]
+            }, { 'Authorization': `Bearer ${OPENROUTER_KEY}` });
+            if (res.choices && res.choices[0]) return res.choices[0].message.content;
+        } catch (e) {}
+    }
+
+    return "Şu an tüm beyinlerim meşgul kaptan, ama hala buradayım!";
 }
 
 async function sendMessage(chatId, text) {
-    await request(`https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendMessage`, { chat_id: chatId, text: text });
+    await request(`https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendMessage`, { chat_id: chatId, text: text, parse_mode: 'Markdown' });
 }
 
 async function sendPhoto(chatId, photoUrl, caption) {
@@ -95,59 +245,60 @@ async function sendPhoto(chatId, photoUrl, caption) {
 }
 
 async function poll() {
-    try {
-        const url = `https://api.telegram.org/bot${TELEGRAM_TOKEN}/getUpdates?offset=${lastUpdateId + 1}&timeout=30`;
-        https.get(url, (res) => {
-            let body = '';
-            res.on('data', chunk => body += chunk);
-            res.on('end', async () => {
-                try {
-                    const data = JSON.parse(body);
-                    if (data.ok && data.result) {
-                        for (const update of data.result) {
-                            lastUpdateId = update.update_id;
-                            if (update.message) {
-                                const msg = update.message;
-                                const chatId = msg.chat.id;
-                                let text = msg.text || msg.caption || "Analiz et.";
-                                let base64Image = null;
-
-                                if (msg.photo) {
-                                    const fileId = msg.photo[msg.photo.length - 1].file_id;
-                                    https.get(`https://api.telegram.org/bot${TELEGRAM_TOKEN}/getFile?file_id=${fileId}`, (res) => {
-                                        let fileBody = '';
-                                        res.on('data', c => fileBody += c);
-                                        res.on('end', () => {
-                                            const fileData = JSON.parse(fileBody);
-                                            if (fileData.ok) {
-                                                https.get(`https://api.telegram.org/file/bot${TELEGRAM_TOKEN}/${fileData.result.file_path}`, (fileRes) => {
-                                                    let imgData = [];
-                                                    fileRes.on('data', c => imgData.push(c));
-                                                    fileRes.on('end', async () => {
-                                                        base64Image = Buffer.concat(imgData).toString('base64');
-                                                        processMessage(chatId, text, base64Image);
-                                                    });
-                                                });
-                                            }
-                                        });
-                                    });
-                                } else {
-                                    processMessage(chatId, text);
+    let lastUpdateId = 0;
+    const loop = async () => {
+        try {
+            const url = `https://api.telegram.org/bot${TELEGRAM_TOKEN}/getUpdates?offset=${lastUpdateId + 1}&timeout=30`;
+            https.get(url, (res) => {
+                let body = '';
+                res.on('data', chunk => body += chunk);
+                res.on('end', async () => {
+                    try {
+                        const data = JSON.parse(body);
+                        if (data.ok && data.result) {
+                            for (const update of data.result) {
+                                lastUpdateId = update.update_id;
+                                if (update.message) {
+                                    processMessage(update.message);
                                 }
                             }
                         }
-                    }
-                    setTimeout(poll, 100);
-                } catch (e) { setTimeout(poll, 1000); }
-            });
-        }).on('error', () => setTimeout(poll, 1000));
-    } catch (e) { setTimeout(poll, 1000); }
+                        setTimeout(loop, 100);
+                    } catch (e) { setTimeout(loop, 1000); }
+                });
+            }).on('error', () => setTimeout(loop, 1000));
+        } catch (e) { setTimeout(loop, 1000); }
+    };
+    loop();
 }
 
-async function processMessage(chatId, text, base64Image = null) {
+async function processMessage(msg) {
+    const chatId = msg.chat.id;
+    const text = msg.text || msg.caption || "";
+    
     console.log(`[MESAJ] Chat ID: ${chatId} | Text: ${text}`);
-    let aiReply = await getAIResponse(text, base64Image);
-    console.log(`[CEVAP] -> ${aiReply}`);
+
+    // KOMUTLAR
+    if (text.startsWith('/start')) {
+        return sendMessage(chatId, "🚀 *AntiGravity Sistemine Hoş Geldin!* \n\nVideodaki gibi güçlü AI modellerini kullanmaya hazırım.\n\n🛠 *Komutlar:*\n/model [model_adi] - Beynimi değiştirir.\n/free - Ücretsiz modelleri listeler.\n/status - Sistem durumunu gösterir.");
+    }
+
+    if (text.startsWith('/free')) {
+        return sendMessage(chatId, "🆓 *Ücretsiz Modeller:*\n- `google/gemini-2.0-flash-exp:free`\n- `deepseek/deepseek-chat`\n- `qwen/qwen-2-72b-instruct`\n- `mistralai/pixtral-12b:free`\n\nDeğiştirmek için: `/model model_adi` yazın.");
+    }
+
+    if (text.startsWith('/model')) {
+        const modelName = text.split(' ')[1];
+        if (!modelName) return sendMessage(chatId, "⚠️ Lütfen bir model adı belirtin. Örn: `/model deepseek/deepseek-chat` \n\nTüm modelleri görmek için openrouter.ai sitesine bakabilirsiniz.");
+        userModels[chatId] = modelName;
+        return sendMessage(chatId, `🧠 *Beyin Değiştirildi!* \nArtık \`${modelName}\` modelini kullanıyorum.`);
+    }
+
+    if (text.startsWith('/status')) {
+        return sendMessage(chatId, `📊 *Sistem Durumu:*\n- Gemini: ${activeModels.gemini ? '✅' : '❌'}\n- OpenRouter: ${activeModels.openrouter ? '✅' : '❌'}\n- Groq: ${activeModels.groq ? '✅' : '❌'}\n- Aktif Beynin: \`${userModels[chatId] || 'Gemini (Varsayılan)'}\``);
+    }
+
+    let aiReply = await getAIResponse(chatId, text);
     const drawMatch = aiReply.match(/\[DRAW:\s*([^\]]+)\]/);
     if (drawMatch) {
         const imageUrl = `${CONFIG.artist_url}${encodeURIComponent(drawMatch[1])}?width=1024&height=1024&nologo=true`;
@@ -157,5 +308,9 @@ async function processMessage(chatId, text, base64Image = null) {
     }
 }
 
-poll();
-console.log('--- AntiGravity 7/24 Dinlemede ---');
+if (TELEGRAM_TOKEN) {
+    poll();
+    console.log('--- AntiGravity 7/24 Dinlemede ---');
+} else {
+    console.error('HATA: TELEGRAM_TOKEN bulunamadı!');
+}

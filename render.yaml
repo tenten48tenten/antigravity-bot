@@ -11,3 +11,5 @@ services:
         sync: false
       - key: GROQ_KEY
         sync: false
+      - key: OPENROUTER_KEY
+        sync: false
