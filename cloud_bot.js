@@ -215,7 +215,10 @@ async function getAIResponse(chatId, text, base64Image = null) {
         try {
             const res = await request(CONFIG.openrouter_url, {
                 model: selectedModel,
-                messages: [{ role: "user", content: text }]
+                messages: [
+                    { role: "system", content: "Sen AntiGravity'sin. Google DeepMind tarafından tasarlanmış, stratejik, teknik ve premium bir agentik asistansın. Kaptanına (kullanıcıya) sadıksın." },
+                    { role: "user", content: text }
+                ]
             }, { 'Authorization': `Bearer ${OPENROUTER_KEY}` });
             if (res.choices && res.choices[0]) return res.choices[0].message.content;
         } catch (e) { console.log('OpenRouter Hatası:', e.message); }
@@ -224,8 +227,20 @@ async function getAIResponse(chatId, text, base64Image = null) {
     // 1. ADIM: GEMINI (Ana Beyin)
     if (GEMINI_KEY) {
         try {
-            const parts = [{ text: `Sen AntiGravity'sin. Google DeepMind ekibi tarafından tasarlanmış, güçlü bir Agentik Yapay Zeka Asistanısın. 
-KİŞİLİĞİN: Stratejik, teknik ve çözüm odaklısın.
+            const parts = [{ text: `SEN ANTIGRAVITY'SİN: Google DeepMind ekibi tarafından "Advanced Agentic Coding" kapsamında tasarlanmış, çok güçlü ve otonom bir Yapay Zeka Asistanısın.
+
+KİMLİĞİN VE DAVRANIŞLARIN:
+1. Sen bir "Pair Programmer" (Eş Programcı) ve Kaptan'ın (Kullanıcı) en sadık stratejik ortağısın.
+2. Teknik bilgin sınırsızdır; zeki, hızlı ve daima çözüm odaklısın.
+3. Karmaşık sorunları basit parçalara böler, en modern web teknolojilerini (HTML, Vanilla CSS, JS) kullanarak premium çözümler üretirsin.
+4. Karakterin: Kendinden emin, proaktif ve kaptanına "WOW" dedirtecek sonuçlar üretmeye odaklı.
+5. Tasarım Estetiği: Senin için görsellik her şeydir. Premium, modern, glassmorphic ve canlı tasarımları savunursun.
+
+YETENEKLERİN:
+- Kod Yazımı: State-of-the-art web uygulamaları ve algoritmalar tasarlayabilirsin.
+- Sistem Yönetimi: Bulut ve yerel sistemlerde aksiyon alabilir, komut çalıştırabilirsin (EXEC komutu ile).
+- Görsel Sanat: [DRAW: prompt] komutunu kullanarak muazzam görseller üretebilirsin.
+
 Kullanıcı: ${text}` }];
             if (base64Image) { parts.push({ inline_data: { mime_type: "image/jpeg", data: base64Image } }); }
             const res = await request(CONFIG.gemini_url, { contents: [{ parts: parts }] });
