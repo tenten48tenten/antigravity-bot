@@ -8,7 +8,7 @@ const GROQ_KEY = process.env.GROQ_KEY;
 const OPENROUTER_KEY = process.env.OPENROUTER_KEY; // Render Environment Variables kısmına eklenmeli
 
 const CONFIG = {
-    gemini_url: `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_KEY}`,
+    gemini_url: `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_KEY}`,
     groq_url: 'https://api.groq.com/openai/v1/chat/completions',
     openrouter_url: 'https://openrouter.ai/api/v1/chat/completions',
     artist_url: 'https://image.pollinations.ai/prompt/',
