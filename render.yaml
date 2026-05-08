@@ -1,5 +1,5 @@
 services:
-  - type: worker
+  - type: web
     name: antigravity-bot
     runtime: node
     buildCommand: npm install
